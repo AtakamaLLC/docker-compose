@@ -1,7 +1,7 @@
 version: "3.4"
 
 x-common-variables: &common-variables
-  ATK_SRV_DB: "mysql:mysql,port=3306,user=root,password=root,database=mydb,charset=utf8"
+  ATK_SRV_DB: "mysql:host=mysql,port=3306,user=root,password=root,database=mydb,charset=utf8"
   ATK_SRV_IMPORT_DIR: "/var/atakama-srv/logs"
   ATK_SRV_ENABLE_LOGGING_TO_FILE: "false"
 
