@@ -1,0 +1,79 @@
+version: "3.4"
+
+x-common-variables: &common-variables
+  ATK_SRV_DB: "mysql:mysql,port=3306,user=root,password=root,database=mydb,charset=utf8"
+  ATK_SRV_IMPORT_DIR: "/var/atakama-srv/logs"
+  ATK_SRV_ENABLE_LOGGING_TO_FILE: "false"
+
+services:
+  mysql:
+    image: mysql:5.7.39-debian
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mydb
+    ports:
+      - "3307:3306"
+    expose:
+      - "3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  files-init:
+    image: gcr.io/distroless/cc-debian11:debug
+    restart: "no"
+    entrypoint: sh
+    environment:
+      <<: *common-variables
+    command: ["-c", 'chown nonroot:nonroot "$$ATK_SRV_IMPORT_DIR"']
+    volumes:
+      - importer-logs:/var/atakama-srv/logs
+
+  logger:
+    image: atakama-srv-logger
+    volumes:
+      - type: bind
+        source: ./privkey.pem
+        target: /etc/atakama/atakama_srv_privkey.pem
+        read_only: true
+      - importer-logs:/var/atakama-srv/logs
+    environment:
+      <<: *common-variables
+    restart: on-failure:5
+    depends_on:
+      - files-init
+
+  importer:
+    image: atakama-srv-importer
+    volumes:
+      - importer-logs:/var/atakama-srv/logs
+    environment:
+      <<: *common-variables
+    restart: on-failure:10
+    depends_on:
+      - files-init
+      - mysql
+
+  aggregator:
+    image: atakama-srv-aggregator
+    environment:
+      <<: *common-variables
+      ATK_SRV_DASHBOARD__INIT_DB: "1"
+    restart: on-failure:10
+    depends_on:
+      - files-init
+      - mysql
+
+  web:
+    image: atakama-srv-web
+    environment:
+      <<: *common-variables
+      ATK_SRV_WEB__HOST: "0.0.0.0"
+    restart: on-failure:10
+    depends_on:
+      - mysql
+    ports:
+      - "8000:8000"
+
+volumes:
+  mysql-data:
+  importer-logs:
