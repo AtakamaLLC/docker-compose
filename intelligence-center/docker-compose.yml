@@ -29,7 +29,7 @@ services:
       - importer-logs:/var/atakama-srv/logs
 
   logger:
-    image: atakama-srv-logger
+    image: atakamallc/atakama-srv-logger
     volumes:
       - type: bind
         source: ./privkey.pem
@@ -43,7 +43,7 @@ services:
       - files-init
 
   importer:
-    image: atakama-srv-importer
+    image: atakamallc/atakama-srv-importer
     volumes:
       - importer-logs:/var/atakama-srv/logs
     environment:
@@ -54,7 +54,7 @@ services:
       - mysql
 
   aggregator:
-    image: atakama-srv-aggregator
+    image: atakamallc/atakama-srv-aggregator
     environment:
       <<: *common-variables
       ATK_SRV_DASHBOARD__INIT_DB: "1"
@@ -64,7 +64,7 @@ services:
       - mysql
 
   web:
-    image: atakama-srv-web
+    image: atakamallc/atakama-srv-web
     environment:
       <<: *common-variables
       ATK_SRV_WEB__HOST: "0.0.0.0"
